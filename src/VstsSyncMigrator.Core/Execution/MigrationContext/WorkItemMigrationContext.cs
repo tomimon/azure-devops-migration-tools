@@ -625,7 +625,7 @@ namespace VstsSyncMigrator.Engine
                 TraceWriteLine(sourceWorkItem, $"Links {sourceWorkItem.Links.Count} | LinkMigrator:{_config.LinkMigration}");
                 workItemLinkOMatic.MigrateLinks(sourceWorkItem, sourceStore, targetWorkItem, targetStore, save);
                 AddMetric("RelatedLinkCount", processWorkItemMetrics, targetWorkItem.Links.Count);
-                int fixedLinkCount = repoOMatic.FixExternalGitLinks(sourceStore, targetWorkItem, targetStore, save);
+                int fixedLinkCount = repoOMatic.FixExternalGitLinks(targetWorkItem, targetStore, save);
                 AddMetric("FixedGitLinkCount", processWorkItemMetrics, fixedLinkCount);
             }
         }
