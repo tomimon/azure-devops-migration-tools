@@ -38,7 +38,7 @@ namespace VstsSyncMigrator.Core.Execution.OMatics
                 };
         }
 
-        public int FixExternalGitLinks(WorkItem targetWorkItem, WorkItemStoreContext targetStore, bool save = true)
+        public int FixExternalGitLinks(WorkItemStoreContext sourceStore, WorkItem targetWorkItem, WorkItemStoreContext targetStore, bool save = true)
         {
             List<ExternalLink> newEL = new List<ExternalLink>();
             List<ExternalLink> removeEL = new List<ExternalLink>();
@@ -49,7 +49,7 @@ namespace VstsSyncMigrator.Core.Execution.OMatics
                 {
                     ExternalLink el = (ExternalLink)l;
 
-                    GitRepositoryInfo sourceRepoInfo = GitRepositoryInfo.Create(el, sourceRepos);
+                    GitRepositoryInfo sourceRepoInfo = GitRepositoryInfo.Create(sourceStore, el, sourceRepos);
 
                     if (sourceRepoInfo.GitRepo != null)
                     {
@@ -186,12 +186,15 @@ namespace VstsSyncMigrator.Core.Execution.OMatics
             this.GitRepo = GitRepo;
         }
 
-        public static GitRepositoryInfo Create(ExternalLink gitExternalLink, IList<GitRepository> possibleRepos)
+        public static GitRepositoryInfo Create(WorkItemStoreContext sourceStore, ExternalLink gitExternalLink, IList<GitRepository> possibleRepos)
         {
 
             string commitID;
             string repoID;
             GitRepository gitRepo;
+            var chgSet = sourceStore.GetChangeset(gitExternalLink.LinkedArtifactUri);
+            var chgSetId = chgSet?.ChangesetId;
+
             //vstfs:///Git/Commit/25f94570-e3e7-4b79-ad19-4b434787fd5a%2f50477259-3058-4dff-ba4c-e8c179ec5327%2f41dd2754058348d72a6417c0615c2543b9b55535
             string guidbits = gitExternalLink.LinkedArtifactUri.Substring(gitExternalLink.LinkedArtifactUri.LastIndexOf('/') + 1);
             string[] bits = Regex.Split(guidbits, "%2f", RegexOptions.IgnoreCase);

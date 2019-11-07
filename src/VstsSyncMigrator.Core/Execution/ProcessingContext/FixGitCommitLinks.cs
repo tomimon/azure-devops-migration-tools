@@ -37,6 +37,8 @@ namespace VstsSyncMigrator.Engine
             Stopwatch stopwatch = Stopwatch.StartNew();
 			//////////////////////////////////////////////////
             WorkItemStoreContext targetStore = new WorkItemStoreContext(me.Target, WorkItemStoreFlags.BypassRules);
+            WorkItemStoreContext sourceStore = new WorkItemStoreContext(me.Source, WorkItemStoreFlags.BypassRules);
+
             var targetQuery = new TfsQueryContext(targetStore);
             targetQuery.AddParameter("TeamProject", me.Target.Config.Project);
             targetQuery.Query =
@@ -58,7 +60,7 @@ namespace VstsSyncMigrator.Engine
                 Stopwatch witstopwatch = Stopwatch.StartNew();
 				workitem.Open();
 
-                _RepoOMatic.FixExternalGitLinks(workitem, targetStore);
+                _RepoOMatic.FixExternalGitLinks(sourceStore, workitem, targetStore);
 
                 if (workitem.IsDirty)
                 {

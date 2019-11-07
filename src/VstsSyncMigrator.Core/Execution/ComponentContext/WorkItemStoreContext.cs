@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using Microsoft.TeamFoundation.Server;
 using System.Text;
+using Microsoft.TeamFoundation.VersionControl.Client;
+using Microsoft.VisualStudio.Services.Common;
 
 namespace VstsSyncMigrator.Engine
 {
@@ -14,6 +16,7 @@ namespace VstsSyncMigrator.Engine
         private WorkItemStoreFlags bypassRules;
         private ITeamProjectContext teamProjectContext;
         private WorkItemStore wistore;
+        private VersionControlServer versionControlServer;
         private Dictionary<int, WorkItem> foundWis;
 
         public WorkItemStore Store { get { return wistore; }}
@@ -26,6 +29,7 @@ namespace VstsSyncMigrator.Engine
             this.bypassRules = bypassRules;
             try
             {
+                versionControlServer = teamProjectContext.Collection.GetService<VersionControlServer>();
                 wistore = new WorkItemStore(teamProjectContext.Collection, bypassRules);
                 timer.Stop();
                 Telemetry.Current.TrackDependency("TeamService", "GetWorkItemStore", startTime, timer.Elapsed, true);
@@ -58,6 +62,14 @@ namespace VstsSyncMigrator.Engine
             return string.Format("{0}/{1}/_workitems/edit/{2}", wi.Store.TeamProjectCollection.Uri.ToString().TrimEnd('/'), wi.Project.Name, wi.Id);
 
         }
+
+        public Changeset GetChangeset(string changeSetUri) {
+            ArtifactId artifact = LinkingUtilities.DecodeUri(changeSetUri);
+            
+            var x = this.versionControlServer.ArtifactProvider.GetArtifactType(new Uri(changeSetUri));
+            return this.versionControlServer.ArtifactProvider.GetChangeset(new Uri(changeSetUri));
+        }
+
         public int GetReflectedWorkItemId(WorkItem wi, string reflectedWotkItemIdField)
         {
             if (!wi.Fields.Contains(reflectedWotkItemIdField))
